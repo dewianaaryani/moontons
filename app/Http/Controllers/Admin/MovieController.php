@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Movie;
 use Illuminate\Http\Request;
-
+use App\Http\Requests\Admin\Movie\Store;
+use Storage;
+use Str;
 class MovieController extends Controller
 {
     /**
@@ -25,7 +27,7 @@ class MovieController extends Controller
      */
     public function create()
     {
-        //
+        return inertia('Admin/Movie/Create');
     }
 
     /**
@@ -34,9 +36,16 @@ class MovieController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(Store $request)
     {
-        //
+        $data = $request->validated();
+        $data['thumbnail'] = Storage::disk('public')->put('movies', $request->file('thumbnail'));
+        $data['slug'] = Str::slug($data['name']); // name: The GodFather, slug: the-godfather
+        $movie = Movie::create($data);
+        return redirect(route('admin.dashboard.movie.index'))->with([
+            'message' => "Movie inserted successfully",
+            'type' => 'success'
+        ]);
     }
 
     /**
